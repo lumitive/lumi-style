@@ -52,6 +52,7 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
 
 import checker_report  # noqa: E402
+import gate_registry  # noqa: E402
 from deliverable_registry import checker_path  # noqa: E402
 
 FIXTURES = ROOT / "fixtures"
@@ -115,7 +116,8 @@ def coverage_report(collected, skipped_kinds) -> list[str]:
     """
     graded: dict[str, bool] = {}
     reported: dict[str, bool] = {}
-    exercised = set()
+    exercised: set[str] = set()
+    blind_seen: set[str] = set()
     for (fixture, kind), report in collected.items():
         base = kind.split("@")[0]
         # inspect_layout has no per-metric targets because every one of its
@@ -136,8 +138,16 @@ def coverage_report(collected, skipped_kinds) -> list[str]:
             bucket[metric] = True
             if verdict != "ok":
                 exercised.add(metric)
+            # THE THIRD ANSWER, TRACKED SEPARATELY. `exercised` lumps every
+            # non-ok verdict together, so a gate seen only FAILING counted as
+            # covered — which is FM-01's coverage standing in for FM-24's. Ten
+            # instances reached the tree that way, the last three in the gate
+            # written after FM-24.
+            if verdict in ("n/a", "blind", "not held"):
+                blind_seen.add(metric)
 
     missing = sorted(m for m in graded if m not in exercised)
+    third = _third_answer_gap(blind_seen)
     n_rep_ex = sum(1 for m in reported if m in exercised)
     print(f"note  coverage: {len(graded) - len(missing)}/{len(graded)} graded "
           f"verdicts have a fixture that fails them; {len(reported)} are "
@@ -149,10 +159,64 @@ def coverage_report(collected, skipped_kinds) -> list[str]:
               f"importable, so inspect_layout's gates were NOT asserted here. "
               f"This run did not test them. pip install playwright && "
               f"playwright install chromium")
-    if missing:
-        return [f"{m} is graded and no fixture fails it — the suite cannot tell it "
-                f"from a metric rewritten to return ok" for m in missing]
-    return []
+    out = [f"{m} is graded and no fixture fails it — the suite cannot tell it "
+           f"from a metric rewritten to return ok" for m in missing]
+    return out + third
+
+
+# Gates declared at or after this version must prove they can say "I could not
+# look". Everything older is grandfathered and listed rather than backfilled:
+# fifty-five gating verdicts predate the rule, and a guard that fails on all of
+# them the day it ships is a guard someone switches off. The cut is the release
+# the figure data contract began at, so the two newest gates — which already
+# comply — give it teeth immediately.
+THIRD_ANSWER_SINCE = "0.1.667"
+
+
+def _third_answer_gap(blind_seen):
+    """-> findings for new gates never seen giving their third answer.
+
+    **FM-24's coverage, which FM-01's was standing in for.** `exercised` above
+    asks whether a fixture can make a gate FAIL. It cannot ask the other
+    question — whether the gate, handed a document it cannot measure, says so
+    rather than printing what a clean document prints. Ten instances reached
+    this tree, three of them in the gate written after FM-24, and every one was
+    a check that could fail and had been seen failing.
+
+    A gate declaring `na_means` is claiming an honest silence; this holds that
+    claim to an observation. A gate that genuinely cannot be n/a says so with
+    `na_impossible`, which is a reason rather than an omission.
+    """
+    try:
+        # `load` already returns the inner mapping — the register's one
+        # home decides that shape, and indexing it again read `gates`
+        # out of a gate.
+        register = gate_registry.load(ROOT)
+    except (OSError, ValueError, KeyError) as exc:
+        return [f"the gate register could not be read ({exc}), so the "
+                f"third-answer coverage was not computed — which is not the "
+                f"same as it being complete"]
+    out = []
+    for name, meta in sorted(register.items()):
+        if meta.get("severity") != "gate":
+            continue
+        since = str(meta.get("since", ""))
+        if not since[:1].isdigit() or since < THIRD_ANSWER_SINCE:
+            continue
+        if meta.get("na_impossible"):
+            continue
+        if not meta.get("na_means"):
+            out.append(
+                f"{name} gates and says nothing about its third answer. Add "
+                f"`na_means` (what an n/a from it means) or `na_impossible` "
+                f"(why it can never be n/a) — a gate that cannot say 'I could "
+                f"not look' prints what a clean document prints (FM-24)")
+        elif name not in blind_seen:
+            out.append(
+                f"{name} declares `na_means` and no fixture has ever seen it "
+                f"say so. The claim that its silence is honest is not checked "
+                f"by anything (FM-24)")
+    return out
 
 
 def main() -> int:

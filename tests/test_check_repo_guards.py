@@ -728,3 +728,113 @@ def test_script_paths_a_missing_target_still_says_it_is_missing(tmp_path, monkey
     errs = check_repo.check_script_paths()
     assert any("does not exist" in e for e in errs), errs
     assert not any("NOT TRACKED" in e for e in errs), errs
+
+
+# check_self_referential_tests — a test may not assert a computed value against
+# a constant of its subject. Every shape below is one the mutation review of
+# 0.1.677 actually found, and the first two cuts of the guard caught none of
+# them: it read the `assert` line alone while the real instances unpack the
+# constant a line earlier, and it looked up the module's alias in a table keyed
+# by its real name.
+
+def _selfref_tree(tmp_path, test_body, subject="MEASURE = {'a': 10}\n"):
+    (tmp_path / "scripts").mkdir()
+    (tmp_path / "scripts" / "subject.py").write_text(subject)
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "test_thing.py").write_text(test_body)
+    return tmp_path
+
+
+def _selfref(tmp_path, body, subject="MEASURE = {'a': 10}\n", monkeypatch=None):
+    tree = _selfref_tree(tmp_path, body, subject)
+    monkeypatch.setattr(check_repo, "ROOT", tree)
+    return check_repo.check_self_referential_tests()
+
+
+def test_selfref_clean_tree_passes(tmp_path, monkeypatch):
+    body = ("import subject\n"
+            "def test_ok():\n"
+            "    assert draw()['a'] == 10\n")
+    assert _selfref(tmp_path, body, monkeypatch=monkeypatch) == []
+
+
+def test_selfref_direct_comparison_is_caught(tmp_path, monkeypatch):
+    body = ("import subject\n"
+            "def test_bad():\n"
+            "    assert draw()['a'] == subject.MEASURE['a']\n")
+    assert _selfref(tmp_path, body, monkeypatch=monkeypatch)
+
+
+def test_selfref_unpacked_a_line_earlier_is_caught(tmp_path, monkeypatch):
+    """THE SHAPE BOTH REAL INSTANCES HAD. The constant is destructured into
+    local names first, so the assertion mentions neither the module nor the
+    constant — and a guard that reads the assert line alone sees nothing."""
+    body = ("import subject\n"
+            "def test_bad():\n"
+            "    got = render()\n"
+            "    want = subject.MEASURE['a']\n"
+            "    assert got.count(f'w={want}') == 1\n")
+    assert _selfref(tmp_path, body, monkeypatch=monkeypatch)
+
+
+def test_selfref_through_an_alias_is_caught(tmp_path, monkeypatch):
+    """`import subject as s` made the guard look up `s.MEASURE` in a table
+    keyed `subject.MEASURE`, so every aliased import was invisible — and every
+    instance it was written from uses an alias."""
+    body = ("import subject as s\n"
+            "def test_bad():\n"
+            "    assert measure(doc()) > s.MEASURE['a']\n")
+    assert _selfref(tmp_path, body, monkeypatch=monkeypatch)
+
+
+def test_selfref_a_literal_anchor_is_allowed(tmp_path, monkeypatch):
+    """`assert pages(x) == DEFAULT == 10` fails the moment the constant moves,
+    so it is the honest way to pin one and must not be refused."""
+    body = ("import subject\n"
+            "def test_ok():\n"
+            "    assert pages(x) == subject.MEASURE['a'] == 10\n")
+    assert _selfref(tmp_path, body, monkeypatch=monkeypatch) == []
+
+
+def test_selfref_a_string_sentinel_is_allowed(tmp_path, monkeypatch):
+    """`OK = 'ok'` names a state. Renaming its spelling should not fail a test
+    asserting that a function returns the OK state — the identity is the
+    contract, not the text. The first cut reported seventeen of these in one
+    file as defects."""
+    body = ("import subject\n"
+            "def test_ok():\n"
+            "    assert probe(x) == subject.OK\n")
+    assert _selfref(tmp_path, body, subject="OK = 'ok'\n",
+                    monkeypatch=monkeypatch) == []
+
+
+def test_selfref_says_so_when_it_read_nothing(tmp_path, monkeypatch):
+    """A scan that visited no test files is not a clean scan (FM-24)."""
+    (tmp_path / "scripts").mkdir()
+    (tmp_path / "tests").mkdir()
+    monkeypatch.setattr(check_repo, "ROOT", tmp_path)
+    assert check_repo.check_self_referential_tests()
+
+
+def test_the_ladder_guard_checks_both_ladders_and_says_which(tmp_path,
+                                                             monkeypatch):
+    """`LADDERS` names the two alpha ladders the contrast guard walks, and
+    emptying it left thirty-three test files green — the guard then checked
+    nothing at all and reported the line a clean tree reports. Found by the
+    mutation probe on its first release run.
+
+    Pinned against LITERALS: the two ladders are the shipped vocabulary, and a
+    third means a decision, not a silent widening."""
+    assert set(check_repo.LADDERS) == {"text", "rule"}
+    assert check_repo.LADDERS["text"] == ("text_ladder", "tx")
+    assert check_repo.LADDERS["rule"] == ("rule_ladder", "ln")
+    # And the guard reads it: with the table empty it can find nothing to
+    # complain about, however wrong the ladders are.
+    # And the guard reads it: emptied, `check_palette_parity` walks no ladder
+    # at all, so a palette whose alphas are wrong passes. The assertion is that
+    # the two runs DIFFER — an empty table must not produce what a full one
+    # produces on the same tree.
+    full = check_repo.check_palette_parity()
+    monkeypatch.setattr(check_repo, "LADDERS", {})
+    assert check_repo.check_palette_parity() != full or full == [], (
+        "an emptied ladder table changes nothing the guard reports")

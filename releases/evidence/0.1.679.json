@@ -1,0 +1,8 @@
+{
+ "version": "0.1.679",
+ "diff_base": "1b2f03dff9a3f1a98657826895ece41212c4865c",
+ "spec": "specs/2026-09-02-compounding-mechanisms-design.md",
+ "obligations": [],
+ "checks": [],
+ "waivers": []
+}

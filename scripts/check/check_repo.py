@@ -5739,6 +5739,182 @@ def check_moves_served():
     return errors
 
 
+def check_self_referential_tests():
+    """A test may not assert a computed value against a constant of its subject.
+
+    **The pattern that has now shipped three times.** A test reads a value out
+    of the module under test and asserts the module's output against it, so the
+    assertion holds however wrong the value is. Measured by the mutation review
+    of 0.1.677: the slide size was set to a 4:3 box and both size tests stayed
+    green; the timeline's height floor was set to 20 and the two tests named
+    for the letterbox stayed green; three rows were deleted from a gate's
+    lookup table and the test asserting on that table stayed green.
+
+    **IT FOLLOWS THE CONSTANT THROUGH LOCAL NAMES, and that is the whole
+    difficulty.** The first cut read the `assert` line alone and caught neither
+    real instance, because both had unpacked the constant one line earlier —
+    `cx, cy = export_pptx.SLIDE["landscape"]`, then an assertion mentioning
+    only `cx` and `cy`. A guard that cannot catch the instances it was written
+    from is FM-01, and it was written that way because the pattern came from an
+    idea of the shape rather than from the material. Convention 15, inside the
+    guard for a convention-15 defect.
+
+    So each test function is walked once: a local name assigned from a
+    subject's constant becomes TAINTED, a local name assigned from a call
+    becomes COMPUTED, and an assertion comparing the two is the finding.
+
+    **ONLY NUMBERS AND CONTAINERS, and the line is the contract's.** A plain
+    string constant is a SENTINEL: `agent_capability.OK == "ok"` names a state,
+    and renaming its spelling should not fail a test asserting that a function
+    returns the OK state — the identity is the contract, not the text. A
+    number, a tuple, a dict or a set is the other kind, and every instance the
+    mutation review found was one. The first cut reported seventeen string
+    sentinels in one file as defects.
+
+    A chain that also pins a literal is anchored and allowed: `assert pages(x)
+    == DEFAULT_PAGES == 10` fails the moment the constant moves.
+
+    The subject set is DISCOVERED — every module under `scripts/` a test file
+    imports. FM-20 is the reason: a hand-written list of subjects is short the
+    day it is written.
+    """
+    import ast
+
+    subjects = {p.stem: p for p in (ROOT / "scripts").rglob("*.py")}
+    valued = _valued_constants(subjects)
+    errors = []
+    for path in sorted((ROOT / "tests").glob("test_*.py")):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+        except SyntaxError as exc:                                  # noqa: PERF203
+            errors.append(f"{path.name}: does not parse ({exc})")
+            continue
+        local = {}
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for a in node.names:
+                    if a.name in subjects:
+                        local[a.asname or a.name] = a.name
+            elif isinstance(node, ast.ImportFrom) and node.module in subjects:
+                for a in node.names:
+                    local[a.asname or a.name] = node.module
+        for fn in [n for n in ast.walk(tree)
+                   if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]:
+            errors += _self_referential(path.name, fn, local, valued)
+    if not errors and not list((ROOT / "tests").glob("test_*.py")):
+        # A SCAN THAT VISITED NOTHING is not a clean scan.
+        return ["no test files were read; this guard checked nothing"]
+    return errors
+
+
+def _self_referential(name, fn, local, valued):
+    """-> findings inside one test function, following local names."""
+    import ast
+
+    tainted, computed, out = {}, set(), []
+    for node in ast.walk(fn):
+        if isinstance(node, ast.Assign):
+            ref = _const_ref(node.value, local)
+            has_call = any(isinstance(n, ast.Call) for n in ast.walk(node.value))
+            names = [t.id for t in ast.walk(node) if isinstance(t, ast.Name)
+                     and isinstance(getattr(t, "ctx", None), ast.Store)]
+            for n in names:
+                if ref and ref in valued:
+                    tainted[n] = ref
+                elif has_call:
+                    computed.add(n)
+            continue
+        if not isinstance(node, ast.Assert):
+            continue
+        for c in [n for n in ast.walk(node.test) if isinstance(n, ast.Compare)]:
+            sides = [c.left, *c.comparators]
+            # ANCHORED ONLY WHEN THE CONSTANT ITSELF FACES A LITERAL.
+            # `pages(x) == DEFAULT_PAGES == 10` is the honest form. `count(
+            # f"...{cx}...") == 1` is not: the 1 anchors the count, and the
+            # constant is buried in the other side's f-string. The first cut
+            # skipped both and therefore caught none of the three real shapes.
+            whole = [_const_ref(x, local) for x in sides]
+            literal = [isinstance(x, ast.Constant)
+                       and not isinstance(x.value, bool) for x in sides]
+            if any(whole) and any(literal):
+                continue
+            refs, comp = [], []
+            for x in sides:
+                used = {n.id for n in ast.walk(x) if isinstance(n, ast.Name)}
+                direct = _const_ref(x, local)
+                hit = (direct if direct in valued else None) or next(
+                    (tainted[n] for n in used if n in tainted), None)
+                refs.append(hit)
+                comp.append(bool(used & computed)
+                            or any(isinstance(n, ast.Call) for n in ast.walk(x)))
+            # A TAINTED NAME ANYWHERE IN THE ASSERTION IS THE FINDING. The
+            # first cut required the constant and the computation on OPPOSITE
+            # sides, and the commonest real shape puts them on the same one:
+            # `pres.count(f"cx={cx}") == 1`, where `pres` was built from the
+            # same constant `cx` came from, so the two move together and the
+            # assertion holds however wrong the constant is.
+            for i, ref in enumerate(refs):
+                if ref and (any(comp[j] for j in range(len(sides)) if j != i)
+                            or comp[i]):
+                    out.append(
+                        f"{name}:{node.lineno}: asserts a computed value "
+                        f"against {ref}, a constant of the module under test — "
+                        f"the assertion holds however wrong {ref} is. Use a "
+                        f"literal")
+                    break
+    return out
+
+
+def _valued_constants(subjects):
+    """-> {"module.NAME"} for constants whose VALUE is the contract.
+
+    A number or a container literal. A plain string is a sentinel and its
+    spelling is not what a test is entitled to depend on. Read from the
+    ASSIGNMENT in the subject's source, never by importing it: a guard that
+    imports every module in `scripts/` runs that module's import-time code.
+    """
+    import ast
+
+    out = set()
+    for stem, path in subjects.items():
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+        except (OSError, SyntaxError):                              # noqa: PERF203
+            continue
+        for node in tree.body:
+            targets = (node.targets if isinstance(node, ast.Assign)
+                       else [node.target] if isinstance(node, ast.AnnAssign)
+                       else [])
+            value = getattr(node, "value", None)
+            for t in targets:
+                if not (isinstance(t, ast.Name) and t.id.isupper()):
+                    continue
+                if isinstance(value, (ast.Dict, ast.Tuple, ast.List, ast.Set)):
+                    out.add(f"{stem}.{t.id}")
+                elif (isinstance(value, ast.Constant)
+                        and isinstance(value.value, (int, float))
+                        and not isinstance(value.value, bool)):
+                    out.add(f"{stem}.{t.id}")
+    return out
+
+
+def _const_ref(node, local):
+    """-> "module.CONST" when this expression reaches a subject's constant."""
+    import ast
+
+    while isinstance(node, ast.Subscript):
+        node = node.value
+    if not isinstance(node, ast.Attribute) or not isinstance(node.value, ast.Name):
+        return None
+    if node.value.id not in local or not node.attr.isupper():
+        return None
+    # THE MODULE'S REAL NAME, not the test's alias. `import timeline_svg as tl`
+    # made this return "tl.BOX_W" while the constant table holds
+    # "timeline_svg.BOX_W", so every aliased import was invisible — and every
+    # instance this guard was written from uses an alias.
+    return f"{local[node.value.id]}.{node.attr}"
+
+
 CHECKS = (
     ("assets tracked", check_assets_tracked),
     ("genre vocabulary", check_genre_vocabulary),
@@ -5802,6 +5978,7 @@ CHECKS = (
     ("secrets", check_secrets),
     ("script paths", check_script_paths),
     ("bootstrap", check_bootstrap),
+    ("self-referential tests", check_self_referential_tests),
     ("scaffold slots", check_scaffold_slots),
 )
 

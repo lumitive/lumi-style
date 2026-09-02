@@ -1,0 +1,14 @@
+{
+  "$comment": "Mutations accepted as alive, each with a reason and, where the work is bigger than a patch, a ledger id. A survivor with no entry fails the release. This is not a place to make a finding go away \u2014 an entry is a debt with an address. Keyed on the SOURCE LINE, never its number: a line-numbered waiver stops matching when anything above it moves, and then silently waives a different mutation.",
+  "survivors": {
+    "scripts/check/check_fixtures.py :: LAYOUT_ARGV emptied :: LAYOUT_ARGV = [\"--deliverable\", \"--no-sheet\"]": "GAP-056: check_fixtures' own comparisons are tested by nothing; closing it means driving main() against a synthetic tree, the way test_record_producer drives run_conformance",
+    "scripts/check/check_fixtures.py :: < -> >= :: if len(spec.get(\"fixtures\", {})) < 2:": "GAP-056: check_fixtures' own comparisons are tested by nothing; closing it means driving main() against a synthetic tree, the way test_record_producer drives run_conformance",
+    "scripts/check/check_fixtures.py :: != -> == :: if proc.returncode != 2 or \"floor\" not in proc.stderr:": "GAP-056: check_fixtures' own comparisons are tested by nothing; closing it means driving main() against a synthetic tree, the way test_record_producer drives run_conformance",
+    "scripts/check/check_fixtures.py :: != -> == :: if targets is None and base != \"layout\":": "GAP-056: check_fixtures' own comparisons are tested by nothing; closing it means driving main() against a synthetic tree, the way test_record_producer drives run_conformance",
+    "scripts/check/check_fixtures.py :: != -> == :: if verdict != \"ok\":": "GAP-056: check_fixtures' own comparisons are tested by nothing; closing it means driving main() against a synthetic tree, the way test_record_producer drives run_conformance",
+    "scripts/check/check_fixtures.py :: != -> == :: if code != expect[\"exit\"]:": "GAP-056: check_fixtures' own comparisons are tested by nothing; closing it means driving main() against a synthetic tree, the way test_record_producer drives run_conformance",
+    "scripts/check/check_fixtures.py :: == -> != :: if kind.split(\"@\")[0] == \"layout\" and not browser_available():": "GAP-056: check_fixtures' own comparisons are tested by nothing; closing it means driving main() against a synthetic tree, the way test_record_producer drives run_conformance",
+    "scripts/check/check_fixtures.py :: != -> == :: if got != want:": "GAP-056: check_fixtures' own comparisons are tested by nothing; closing it means driving main() against a synthetic tree, the way test_record_producer drives run_conformance",
+    "scripts/check/check_fixtures.py :: == -> != :: if got == forbidden:": "GAP-056: check_fixtures' own comparisons are tested by nothing; closing it means driving main() against a synthetic tree, the way test_record_producer drives run_conformance"
+  }
+}

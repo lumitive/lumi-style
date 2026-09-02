@@ -421,7 +421,26 @@ def main():
     # needs a tool that holds it. REPORTED, never gating: the sweep's own
     # contract is that it reports and never fails, and turning it into a gate
     # here would quietly overrule that.
-    print("\n5. restated claims — the ones in the files this release touches")
+    print("\n5. mutation probe — is the suite watching this release's code?")
+    # BOUNDED AND GATING. The pre-merge review of 0.1.677 planted 46 defects
+    # and the suite could not see 32 — the highest find rate of any instrument
+    # here, and the only one nobody ran automatically. It mutates only the
+    # files this release changed and runs only the tests reaching them, so it
+    # finishes in seconds rather than in the seven minutes a full suite takes
+    # per mutation. A survivor is killed with a test or recorded in
+    # `evals/mutation-waivers.json` with a reason; "it is only a report" is how
+    # the last ten FM-24 instances shipped.
+    # `HEAD` because nothing is committed yet: the working tree IS this
+    # release, and its diff against HEAD is exactly what it changed.
+    probe = subprocess.run(
+        [sys.executable, str(ROOT / "scripts/check/mutation_probe.py"),
+         "--base", "HEAD"], cwd=ROOT)
+    if probe.returncode:
+        sys.exit("\nNOT COMMITTING. A mutation survived, which means a change "
+                 "in this release is not watched by anything. Write the test, "
+                 "or record it with a reason.")
+
+    print("\n6. restated claims — the ones in the files this release touches")
     # `--changed HEAD`: the staged release diff, not the whole tree. The full
     # sweep printed hundreds of lines and its last two were what a reader saw.
     sweep = run(["python3", "scripts/check/claim_sweep.py", "--counts", "--changed", "HEAD"])
@@ -432,7 +451,7 @@ def main():
         print("\n--dry-run: stopping before the commit.")
         return
 
-    print("\n6. commit")
+    print("\n7. commit")
     # OWNER-OWNED PATHS ARE NEVER SWEPT INTO A RELEASE. `git add -A` takes
     # everything in the tree, including files the owner is editing and has said
     # not to touch. 0.1.547 committed 413 lines of her brand-packs spec that
