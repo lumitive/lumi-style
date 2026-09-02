@@ -1,0 +1,24 @@
+{
+  "version": "0.1.678",
+  "diff_base": "598a41a302ec3d14168ff7f71eb8969b94c79527",
+  "spec": "",
+  "obligations": [
+    "layout-fixtures",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "ceba183d82a97ca1497203ff96532585eac2bb22a7b32caf464a8649b591a02f",
+      "date": "2026-09-02"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "UNCONFIRMED: whether agents outside this session reach for the content interface, the dense layout and the layer map. This release raises three figure text sizes in tokens/ and rewrites one rule's scope, so the obligation is correctly raised, though nothing here changes what an agent is asked to do. The board refresh means driving >=2 agents with the owner's own keys and installs; one is hand-driven and the run is hers to authorise. Recording `validate` proves nothing: it exits 0 on a stale board, which is why the gate refuses that path. Sixth consecutive release carrying it. What IS confirmed here is the change itself: rendered at both sizes on the sheet carrying sixteen small-type nodes, with the page height, the wrapping and the gate results measured on all three calibration decks."
+    }
+  ]
+}

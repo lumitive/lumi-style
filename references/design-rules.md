@@ -1799,14 +1799,20 @@ with nothing to say cannot be produced by accident, so the failure happens at
 the drawing rather than at the review.
 
 **Figure text stops at 12px, and that is a floor rather than a target.** It
-governs the classes a composed figure and the renderers write — `flbl`,
-`ftick`, `fval`, `fread`, `fnote` — and `figure_slots.TEXT_FLOOR` holds them
-to it. It does NOT govern the axis name, nor the older drawing vocabulary
-`.lbl` / `.sm` / `.cap-w`, which predates this rule at 11 to 11.5px: raising
-those changes every figure this package has shipped, so it is a design
-decision to be taken rather than a floor to be applied quietly. Saying which
-is which is the point — a floor whose scope is unstated was contradicted by
-its own token file for a release. The
+governs every class that sets type inside a drawing, and `tokens/` ships them
+all at or above it. The one exclusion is the axis NAME (`.axname-x`,
+`.axname-y`), which is furniture beside the drawing rather than type inside
+it.
+
+*Three classes sat below the floor for a release, and the exemption that named
+them is gone.* `.lbl`, `.sm` and `.cap-w` predated this rule at 11 to 11.5px,
+so the rule and its own token file contradicted each other and nothing could
+see it — the guard read the composing module's role table and never the
+stylesheet. The question of raising them was settled by rendering rather than
+by argument: every small-type node grew 4.3%, no line re-wrapped, nothing left
+its own viewBox, the page stayed exactly 720px, and all three calibration decks
+gave identical gate results. A floor whose scope has to be narrowed to stay
+true is a floor to check, not a scope to write down. The
 reference deck this rule was calibrated against goes to 9.3px and its own spec
 justifies the choice by scoping the audience to a meeting-room screen and a PDF
 read at arm's length. LUMI's delivery includes a projected screen, so the floor

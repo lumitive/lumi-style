@@ -1,3 +1,47 @@
+## 0.1.678 — the three classes that sat below their own floor
+
+DR-22 sets the figure text floor at 12px. `.lbl`, `.sm` and `.cap-w` predated
+that rule at 11 and 11.5px, so the rule and the token file it governs
+contradicted each other — and nothing could see it, because the guard reads the
+composing module's role table and never the stylesheet. 0.1.677 closed the
+contradiction the cheap way, by narrowing DR-22's scope to name them as
+exempt. This closes it the other way.
+
+**Settled by rendering, not by argument.** The exemption was written on a
+guess — that raising them "changes every figure this package has shipped" —
+and the guess was wrong twice. No renderer emits these three classes and the
+scaffold does not either: they appear in three calibration sheets from August
+and in one hand-written caption. Rendered at both sizes on the sheet that
+carries sixteen of them:
+
+| | 11 / 11.5px | 12px |
+|---|---|---|
+| small-type node widths | — | **+4.3%**, all sixteen |
+| lines re-wrapped | — | none |
+| ink outside its own viewBox | none | none |
+| page height | 720px | 720px |
+| gating findings, all three sheets | 1 (pre-existing) | 1 (the same one) |
+
+So the exemption was costing legibility for nothing. The reason to raise them
+is the delivery: a LUMI deck is projected, and 11px does not reach the back of
+a room — which is the same argument that set the floor at 12 rather than at the
+reference implementation's 9.3.
+
+`.axname-x` and `.axname-y` stay at 11 and are now the floor's ONLY exclusion:
+an axis name is furniture beside the drawing rather than type inside it. The
+test that holds the stylesheet to the floor governs all eight remaining classes
+and asserts the set is complete against what the renderers actually write — it
+missed three for a release, which is how a rule and its own tokens came to
+disagree.
+
+*Deliberate red:* `.sm` back to 11.5 and `.lbl` back to 11, each watched to
+fail before being restored.
+
+*A note on how this was decided.* The owner asked what the decision needed from
+her. The answer was a look, not a discussion: two renders of the same page,
+three minutes, and the measurement above. **A floor whose scope has to be
+narrowed to stay true is a floor to check, not a scope to write down.**
+
 ## 0.1.677 — four reviewers, 32 live mutations, and six defects a reader would have seen
 
 Written from the pre-merge review of 0.1.672–0.1.676. Four readers ran in
