@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.677 (2026-08-19)
+   LUMI page layouts · v0.1.678 (2026-08-19)
    The page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -313,10 +313,23 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
    rule and existed only because a probe compared against it. Shipping an asset
    with no rule is the mirror of CLAUDE.md rule 5, and costs the same. */
 /* Type inside a drawing. viewBox units, so it scales with the figure; a page
-   whose argument is a number says the number at the size of the argument. */
+   whose argument is a number says the number at the size of the argument.
+
+   12px IS THE FLOOR AND IT COVERS ALL OF THIS. `.lbl`, `.sm` and `.cap-w` sat
+   at 11 and 11.5 from before DR-22 was written, so the rule and the tokens it
+   governs contradicted each other for a release and DR-22 had to name an
+   exemption to stay true. Raised at 0.1.678 on a measurement rather than a
+   preference: rendered at both sizes, every small-type node grew 4.3%, no line
+   re-wrapped, nothing left its own viewBox, the page stayed exactly 720px and
+   all three calibration decks produced identical gate results. The reason to
+   raise them is the delivery: LUMI decks are projected, and 11px does not
+   reach the back of a room.
+
+   `.axname-x` and `.axname-y` stay at 11: the axis NAME is furniture beside
+   the drawing rather than type inside it, and DR-22 says so. */
 svg text { font-family: var(--din); fill: var(--tx2); }
-svg .lbl { font-size: 11px; }
-svg .sm { font-size: 11.5px; fill: var(--tx3); }
+svg .lbl { font-size: 12px; }
+svg .sm { font-size: 12px; fill: var(--tx3); }
 svg .lbl-lg { font-size: 13.5px; fill: var(--tx1); }
 /* THE AXIS NAMES, which are a role and not a size. A chart's axis name and a
    data label on a mark look identical to a checker measuring geometry — both
@@ -383,7 +396,7 @@ svg .big { font-size: 15px; font-variant-numeric: tabular-nums; }
    The tier the figures were missing: a deck whose in-drawing headings sat at
    13px read as a diagram with captions, not as an exhibit. */
 svg .row-lbl { font-size: 17px; font-weight: 700; fill: var(--tx1); }
-svg .cap-w { font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; fill: var(--tx3); }
+svg .cap-w { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; fill: var(--tx3); }
 svg .huge { font-weight: 700; font-size: 54px; font-variant-numeric: tabular-nums;
             fill: var(--tx1); letter-spacing: -.02em; }
 svg .mid  { font-weight: 700; font-size: 30px; font-variant-numeric: tabular-nums;

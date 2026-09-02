@@ -689,13 +689,16 @@ def test_d32s_data_contract_exemption_requires_an_actual_drawing():
     assert check_design.d32_shape_use(page(spec, fig))["bare"] == []
 
 
-# The figure text vocabulary DR-22's floor governs: what the composed-figure
-# interface and the renderers write. `.axname-x` / `.axname-y` are the axis
-# NAME, and `.lbl` / `.sm` / `.cap-w` are the older drawing vocabulary that
-# predates the floor at 11 to 11.5px — raising those changes every figure this
-# package has shipped, which is a design decision and not a hygiene one, so
-# DR-22 names its scope instead of quietly covering them.
-GOVERNED = {"flbl", "ftick", "fval", "fread", "fnote"}
+# EVERY class that sets type inside a drawing. `.lbl` / `.sm` / `.cap-w`
+# predated DR-22 at 11 to 11.5px and were exempted for one release while the
+# question was measured: rendered at both sizes, every small-type node grew
+# 4.3%, no line re-wrapped, nothing left its own viewBox, the page stayed
+# exactly 720px, and all three calibration decks gave identical gate results.
+# The exemption was costing legibility for nothing, so it is gone.
+#
+# `.axname-x` / `.axname-y` remain out of scope: the axis NAME is furniture
+# beside the drawing rather than type inside it, and DR-22 says so.
+GOVERNED = {"flbl", "ftick", "fval", "fread", "fnote", "lbl", "sm", "cap-w"}
 
 
 def test_no_figure_text_class_ships_below_the_floor_dr22_states():
@@ -716,7 +719,9 @@ def test_no_figure_text_class_ships_below_the_floor_dr22_states():
              if n in sizes and float(sizes[n]) < figure_slots.TEXT_FLOOR]
     assert not small, f"below DR-22's {figure_slots.TEXT_FLOOR}px floor: {small}"
     # And the set is complete: every class the renderers write must be here,
-    # or the floor governs a vocabulary and misses the one in use.
+    # or the floor governs a vocabulary and misses the one in use. It missed
+    # three for a release, which is how the rule and its tokens came to
+    # contradict each other.
     emitted = set()
     for tool in pathlib.Path("scripts/render").glob("*_svg.py"):
         emitted |= set(re.findall(r'class="(f[\w-]+)"', tool.read_text(encoding="utf-8")))
