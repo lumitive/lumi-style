@@ -70,15 +70,19 @@ echo "==> Waiting on PR #$PR (bounded: 3 checks over ~4 minutes)"
 for delay in 45 90 105; do
   sleep "$delay"
   ROLLUP=$(gh pr view "$PR" --repo "$REPO" --json statusCheckRollup \
-    --jq '[.statusCheckRollup[]? | "\(.status)/\(.conclusion)"] | join(",")' 2>/dev/null)
+    --jq '[.statusCheckRollup[]? | "\(.status // .state)/\(.conclusion // .state)"] | join(",")' 2>/dev/null)
   echo "    $(date +%H:%M:%S)  ${ROLLUP:-<no checks reported>}"
-  case "$ROLLUP" in
-    *COMPLETED/SUCCESS*)
+  # EVERY check, never any check. A substring match here once read one green
+  # job as a green PR while the required job was still running (PR #204); the
+  # judgement lives in scripts/lib/ci_rollup.py with its four answers named.
+  VERDICT=$(python3 "$SCRIPT_DIR/../lib/ci_rollup.py" "$ROLLUP")
+  case "$VERDICT" in
+    pass)
       echo
-      echo "==> Passed. Merge with: gh pr merge $PR --rebase --delete-branch"
+      echo "==> Passed — every check. Merge with: gh pr merge $PR --rebase --delete-branch"
       exit 0
       ;;
-    *COMPLETED/FAILURE*)
+    fail)
       echo
       echo "==> FAILED. This is a defect, not the queue:"
       gh run list --branch "$(gh pr view "$PR" --repo "$REPO" --json headRefName --jq .headRefName)" \
@@ -87,7 +91,7 @@ for delay in 45 90 105; do
         | sed 's/^[^Z]*Z //' | grep -E "^FAIL|^ {6}" | head -8
       exit 1
       ;;
-    *COMPLETED/CANCELLED*)
+    cancelled)
       echo "    cancelled — an infrastructure symptom, not a verdict; re-run once:"
       echo "    gh run rerun \$(gh run list --branch <branch> --limit 1 --json databaseId --jq '.[0].databaseId')"
       exit 3

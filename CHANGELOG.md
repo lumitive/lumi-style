@@ -1,3 +1,39 @@
+## 0.1.684 — the CI wait judged one job as the PR; the release signed itself as the wrong model
+
+Not a rule change. Two defects in the tooling, both found while merging
+0.1.683 and both fixed rather than reported.
+
+- **`ci_wait.sh` said Passed while the required job was still running.**
+  The verdict was a bash substring match, `*COMPLETED/SUCCESS*`, so one
+  finished job read as a green PR. The real instance (convention 15): PR #204's
+  rollup at the moment the script printed Passed was
+  `IN_PROGRESS/,COMPLETED/SUCCESS,COMPLETED/SUCCESS`, and `gh pr merge` refused
+  the merge the script had just recommended. The judgement is now
+  `scripts/lib/ci_rollup.py`'s `verdict`, over EVERY check: `pass` only when
+  each is finished with a passing conclusion, `fail` on any failed one even
+  while others run, `cancelled` on any cancelled one with none failed,
+  `pending` otherwise — and `pending` for an empty rollup, the third answer
+  convention 11 asks for: no checks registered is not a green. The shell
+  script only routes on the word. Deliberate red: `tests/test_ci_rollup.py`
+  was written first with that string verbatim and run against the unchanged
+  tree — the module was absent and the closure test that requires the script
+  to call it and to carry no substring case failed; it is green now, and the
+  same file pins eleven more rollups including the commit-status form
+  `SUCCESS/SUCCESS`, which the jq now emits through `.status // .state`.
+- **`release.py` named its author in a string literal.** Every release commit
+  carried `Co-Authored-By: Claude Opus 5 (1M context)` whichever agent ran
+  it; this session's had to be amended by hand. `commit_trailers` reads the
+  session instead: `RELEASE_TRAILERS` (newline-separated), `--trailer`
+  (repeatable), and a `Claude-Session:` link built from
+  `CLAUDE_CODE_BRIDGE_SESSION_ID` unless a trailer already names one. Nothing
+  set means no trailer and a line saying so — an unsigned commit is honest, a
+  mis-signed one is not. `tests/test_release_tool.py` asserts the source
+  names no author and unit-tests the three sources and the no-double rule.
+
+Owner directive, 2026-09-02: both were first reported back as findings with
+a question attached, and the answer was that a defect found during the work is
+fixed during the work. Recorded so the next session does not ask.
+
 ## 0.1.683 — the rest of the history leaves the file that is read every turn
 
 Not a rule change. The third move in the series 0.1.681 and 0.1.682 began, and
