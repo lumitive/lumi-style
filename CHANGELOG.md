@@ -1,3 +1,29 @@
+## 0.1.680 — the slowest step in CI was running on one core
+
+Not a rule change. The suite is the single largest cost in every release and
+nobody had measured it: **187 of CI's 247 seconds were `pytest`**, and 432
+seconds locally, where the browser-backed tests do not skip. It was running
+serially on a four-core runner and an eight-core laptop.
+
+It parallelizes with nothing else changed. No test writes into the working
+tree, none depends on another's ordering, and the one `chdir` is scoped by a
+fixture. Two full runs before the change was made: **2336 passed in 119s on
+eight workers, 2336 passed in 135s on four** — four being the runner's core
+count, so the number CI sees is the second one. That is 187s to roughly 60s in
+CI and 432s to 119s locally, which is the whole of `preflight`'s worst step.
+
+`pytest-xdist` is pinned like every other tool in `requirements-dev.txt`, on the
+same reasoning: local and CI must run the same versions or `preflight`'s promise
+that local green equals CI green is not a promise. The deliverable path is
+untouched — it remains standard library only, and nothing in `scripts/` imports
+xdist at runtime.
+
+`mutation_probe.py` keeps its serial `-x` run on purpose: it stops at the first
+failure by design, and stopping early is what makes it cheap.
+
+The command is restated in exactly one other place, `CLAUDE.md`'s check list,
+and `claim_sweep.py` was run to confirm there is no third copy.
+
 ## 0.1.679 — three mechanisms, because writing the lesson down did not work
 
 This implements `specs/2026-09-02-compounding-mechanisms-design.md`.

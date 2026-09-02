@@ -44,7 +44,9 @@ jobs:
       # ruff's S rules (flake8-bandit) are the Python security scan.
       - run: python3 -m ruff check .
       - run: python3 -m mypy
-      - run: python3 -m pytest -q
+      # `-n auto` (pytest-xdist): the suite is the single slowest CI step by a
+      # wide margin and had been running serially on a multi-core runner.
+      - run: python3 -m pytest -q -n auto
       # Both JavaScript surfaces — the tracked assets/**.js runtimes and the
       # probe strings embedded in inspect_layout.py — parsed by `node --check`.
       # Until 0.1.416 neither had any syntax gate (0.1.414: "the guard shipped
