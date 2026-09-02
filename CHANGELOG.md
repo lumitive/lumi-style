@@ -1,3 +1,68 @@
+## 0.1.682 — every changed line traces to the request, held by a gate; the checks' long form moves out
+
+This implements `specs/2026-09-02-surgical-diff-design.md`.
+Two things, one root. Both come from the review of what 0.1.681 shipped.
+
+**The gate.** 0.1.681's `adapters/shipped.json` diff was 499 lines of which
+5 were the change: a one-space file written back with two. The obvious reading
+was a one-off. It was not — the same measurement over the thirty commits before
+it finds the class three more times, in two releases:
+
+```
+git diff --numstat <rev>~1 <rev>   versus   git diff -w --numstat <rev>~1 <rev>
+0.1.673  evals/gates.json           1136 lines,   8 once whitespace is ignored
+0.1.673  evals/rule-coverage.json   9960 lines, 384
+0.1.674  evals/rule-coverage.json   9990 lines, 144   (putting 0.1.673's back)
+0.1.681  adapters/shipped.json       499 lines,   5
+```
+
+Four times, three releases, one of them undoing the one before, and nothing
+watching: twenty-six `json.dump` sites with `indent=1` at twelve and `indent=2`
+at fourteen and no shared writer. Convention 2 promotes a lesson that appears in
+two documents; convention 16 says a rule that was written and broken needs a
+tool. **`scripts/check/surgical_diff.py`** is convention 17's surgical-change
+test — *every changed line traces to the request* — mechanised: a file with at
+least 60 changed lines of which at most a fifth survive `-w` was reformatted,
+not edited. Thresholds chosen against that history: they name all four and
+none of the other twenty-six. It runs twice — in `release.py` on the working
+tree, where the author can still write the file back, and as `check_repo`'s
+`surgical diff` guard on HEAD~1..HEAD in CI, so a commit made around the
+release tool is judged the same way. Three answers: clean, reformat, and *could
+not look* (exit 2 — not a git tree, a revision git cannot resolve). A meant
+reformat is a decision with an address in `evals/reformat-waivers.json`, live
+only while its release is the newest heading; a dead waiver is a finding.
+
+**Planted first, on the real material** (convention 15): the gate was run on
+those four commits before its tests were written, and on 0.1.680, which it
+passed. Fifteen tests in `tests/test_surgical_diff.py` hold each answer on
+synthetic git repositories, and three of them re-run the historical cases.
+
+**The cause.** `scripts/lib/jsonio.py` — `dump_json` reads the indent the
+file already has and writes with it. Registered in `evals/single-source.json`
+as the one home for writing a tracked JSON file; `trace.py`'s private
+`_write_json` is retired into its `atomic=True` option, and seven writers of
+tracked files (`release.py`, `preflight.py`, `check_rule_coverage.py`,
+`check_evidence.py`, `eval_agreement.py`, `run_conformance.py`, `trace.py`)
+now go through it. The 22 hand-written JSON files keep whatever indent they
+have — AG-4 refused the reformat that would make them uniform, and this release
+agrees with AG-4.
+
+**Why the author reached for a rewrite in the first place** is recorded here
+because it will recur. The session that shipped 0.1.681 was running under a
+harness directive to prefer shell commands over the dedicated edit tools, so a
+one-line JSON change was made by parsing and re-serialising the whole file. A
+precise edit does not reformat what it does not touch; a re-serialisation
+reformats everything. The gate does not care which tool was used, which is the
+point.
+
+**The move.** `CLAUDE.md`'s *Checks* section was 16 KB of which the command
+table was 4; the rest was the history of each checker. Same reasoning as
+0.1.681: the rules stay, the history moves to `MAINTENANCE.md` under *The
+checks, in full*. **34.0 KB to 27.5 KB.** The one paragraph the `gating claims`
+guard holds by regex — the gating design metrics — stays in `CLAUDE.md`
+verbatim, and `MAINTENANCE.md` points at it rather than carrying a second copy,
+which would be the drift convention 12 exists for.
+
 ## 0.1.681 — the conventions keep their numbers; their case histories move out
 
 Not a rule change: the twenty maintenance conventions are unchanged in force

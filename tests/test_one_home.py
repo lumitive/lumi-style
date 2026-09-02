@@ -258,6 +258,7 @@ def test_the_live_register_still_declares_what_the_consolidation_moved():
         "rule-file-family": ([], 1),
         "figure-scale": (["num", "step_for", "nice_range", "nice_ceiling",
                           "ticks", "fmt", "wrap"], 1),
+        "json-file-writing": (["load_json", "dump_json", "detect_indent"], 0),
     }
     assert set(facts) == set(expected), "a fact was added or removed"
     for fid, (defs, patterns) in expected.items():

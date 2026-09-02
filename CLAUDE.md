@@ -41,6 +41,7 @@ python3 scripts/build/build_entrypoints.py     # regenerate every per-platform a
 python3 scripts/build/build_fixtures.py        # regenerate the tracked test fixtures; --check in CI
 python3 scripts/check/check_fixtures.py        # run the checkers against the fixtures and assert verdicts
 python3 scripts/check/check_js.py              # node --check over the 8 tracked .js files + 3 embedded probes
+python3 scripts/check/surgical_diff.py         # did a diff reformat a file it meant to edit? gates in release.py and CI
 python3 scripts/check/check_evidence.py        # --init | record --id X | --check: the evidence gate (see below)
 python3 scripts/ops/review_scores.py         # the six human dimensions over time; --check validates
 python3 scripts/ops/nightly_review.py        # what today shipped, against the measured failure classes; REPORTS
@@ -52,134 +53,45 @@ python3 -m ruff check .                  # lint + the S security rules; gates in
 python3 -m mypy                          # type-check (check_untyped_defs floor); gates in CI
 bash    scripts/ops/ci_wait.sh <PR>          # bounded wait, short-circuits on outage
 ```
-
 **The deliverable path is standard library only** — nothing in `scripts/`
-imports outside it at runtime. Development tools (ruff, mypy, pytest) are
-pinned in `requirements-dev.txt`, installed by CI and by `preflight.py`'s
-pip step, and ship in no deliverable. `.github/workflows/ci.yml` holds the
-authoritative step list — deliberately not counted here: this file once said
-"seventeen" while preflight's docstring said "fifteen", and both numbers were
-somebody's memory of the workflow rather than the workflow.
-**`check_repo.py` is ONE of those steps, and reporting it green is not
-reporting the release green** — 0.1.415 was verified on eight of the gates,
-pushed, and failed CI on a generator check nothing local had invoked.
-`scripts/preflight.py` reads the step list out of `ci.yml` and runs all of it,
-so "local green" and "CI green" are the same claim; it refuses to run a subset
-if it cannot parse the workflow, and `--timing-update` records a local
-per-step timing baseline that later runs WARN against (warn-only by design —
-a baseline is one machine's number). Its guards are the mechanical half of the invariants below: version
-stamps, version citations, the English-only red line, markdown link targets,
-stale forward promises, the platform manifest, retired values, palette parity
-between the two `tokens/` files, that every `var()` in `tokens/` resolves to a
-custom property `tokens/` defines, that every class a checker asserts has a base
-rendering in `tokens/` or a written waiver, that nothing is styled only inside a
-media query, that the layouts `tokens/` defines are the layouts `check_design.py`
-grades, the text ladder's contrast floor,
-ban-list parity, that every statement of the output-directory default names the
-same literal directory, that every generated artifact and fixture is current, that the
-checkers still produce the expected verdicts on both fixtures, that the
-vendored assets are intact, that no script re-grows a private copy of a fact
-`evals/single-source.json` gives one home to, that
-the three ledgers parse and no GAP/FM/IDEA citation dangles, that the release
-commit's subject carries its version (HEAD only — history is not
-retroactively reddened), and that no credential-shaped string ships in a
-tracked file.
-The list above is representative; `check_repo.py`'s `CHECKS` tuple is the
-authority, and a guard with no entry there does not run.
+imports outside it at runtime; dev tools are pinned in `requirements-dev.txt`
+and ship in no deliverable. **`.github/workflows/ci.yml` is the authoritative
+step list and is deliberately not counted here.** `scripts/preflight.py` reads
+that list and runs all of it, so "local green" and "CI green" are the same
+claim; it refuses to run a subset. **`check_repo.py` is ONE of those steps** —
+its `CHECKS` tuple is the authority on what it guards, and a guard with no
+entry there does not run. What each guard exists for, and the history behind
+the checkers below, is in [`MAINTENANCE.md`](MAINTENANCE.md) under *The checks,
+in full*.
 
-**Every verdict a deliverable can receive is declared in `evals/gates.json`**,
-with the concept it belongs to (`family`), the release that introduced it
-(`since`), whether an `n/a` from it is an honest silence (`na_means`) or a
-measurement that did not happen, and — on every GATING row — what it grades
-(`subject`), so a clean sheet can say how much it held rather than only that it
-was clean. `checker` and `severity` are held to the
-checkers themselves by the `gate declarations` guard, and `subject` by
-`vacuous gates`, so the register adds knowledge and cannot contradict.
-(`subject` is `key`, `key.field`, or the literal `always`. It is declared
-rather than discovered because absence has a shape no probe can see: a gate
-whose row prints its VIOLATION count renders identically on a document that
-gave it nothing and one whose subject is flawless.) **A gate binds a document built at or after its
-`since`** — an older deliverable reports `not held`, which is neither a pass nor
-a failure — and a document with no version stamp is held to everything, because
-an absent stamp must not become an exemption. This exists because the gate set
-applied was always HEAD's: `built_version` was captured and read by nothing that
-decided anything, so a deck accepted at 0.1.449 was failed by a rule written
-after it and the failure read exactly like a defect.
+**Every verdict a deliverable can receive is declared in `evals/gates.json`**
+— its `family`, the release it is `since`, what an `n/a` from it means
+(`na_means`), and on every gating row what it grades (`subject`). **A gate
+binds a document built at or after its `since`**; an older deliverable reports
+`not held`, and a document with no version stamp is held to everything.
 
 `tests/` holds the pytest suite: characterization tests for the shared
-modules, synthetic-tree tests that prove each guard can FAIL as well as pass
-(a guard only ever seen passing is FM-01 in `FAILURE_MODES.md`), and a
-`--help` floor over every argparse CLI (the flag-less ones — check_repo,
-check_js, check_fixtures, embed_font — are exempt by construction). Every
-new gate ships with a deliberate-red
-run recorded in its CHANGELOG entry.
+modules, synthetic-tree tests that prove each guard can FAIL as well as pass,
+and a `--help` floor over every argparse CLI. Every new gate ships with a
+deliberate-red run recorded in its CHANGELOG entry (convention 11).
 
-`check_globe.py`'s browser half narrowed at 0.1.426: the JS projection port
-is now held to the Python authority IN CI — the 1300-sample golden grid runs
-under bare `node` (`--python-only --node`), since `projection.js` is DOM-free.
-What still needs a browser (renderer parity, painted ink, occlusion) is an
-operator step recorded through the evidence gate. There is still no
-package.json and no JS runner beyond `node` itself; `check_js.py` syntax-parses
-both JavaScript surfaces — the tracked `.js` files and the probe strings
-embedded in `inspect_layout.py` (discovered by naming convention, never
-hand-listed) that `py_compile` reads as prose.
-
-`check_prose.py`, `check_design.py` and `inspect_layout.py` all measure a
-**deliverable** rather than this repo. Two of them do run in CI, against the
-tracked synthetic fixtures in `fixtures/` — that is the whole point of shipping
-them. `inspect_layout.py` still cannot: it needs a headless Chromium, so it is
-run locally — and since 0.1.424 (gating since 0.1.425) its result is
-recorded through
-**`check_evidence.py`**, never as a sentence in the release notes. The
-evidence gate is the standing answer to GAP-002: each release writes
-`releases/evidence/<version>.json`; `--init` computes which operator checks
-the release diff obliges (browser layout gates, the globe's browser half,
-conformance freshness), `record --id X` EXECUTES the canonical command and
-machine-writes exit code + output digest + date (the schema has no verdict
-field — a human never types "pass"), and `--check` gates in CI: unmet
-obligations, copied digests, nonzero exits not citing an open KNOWN_GAPS
-entry, and overclaim phrases beside a waiver all fail the release.
-Evidence files are kept forever: they are small (under 1KB), they are the
-audit trail, and the gate only ever reads the current release's file — there
-is nothing to prune for and deleting evidence would be against the point. `inspect_layout.py` needs a headless Chromium (`pip install pillow
-playwright && playwright install chromium`); its real output is a contact sheet
-for a person to look at. **None of its design judgements gates, but it exits 1
-when a check could not be measured at all** — a document whose markup it cannot
-read, a role whose class it cannot find, an audit that crashed. That distinction
-is the point: until 0.1.350 all three of those printed the same reassuring lines as
-a clean document. **`--deliverable` gates a *document*, never this repo**: it
-exits non-zero on the findings that are decidable rather than aesthetic
-(collision, a starved column, content spill, page height, hidden content, a
-wrapped footer, a footer whose runs sit on different baselines, a viewBox that
-does not parse, a drawing clipped by its own viewBox, a stat band whose
-labels render outside it, an overspent title
-reserve, a role split, a lost datum, a mark drawn out of proportion to the value it declares, and a document whose content pages are mostly not drawn on at all — the code's `deliverable_verdicts` is the
-authority; this list has been counted wrong in four files at once) and is the
-pre-delivery step in `SKILL.md`.
-`run_conformance.py` runs it that way. Everything else it prints stays reported,
-including the part-opener count, which is an observation and not a floor. `check_prose.py` grades either output
-language — it reads the document's own `lang`, takes `--lang` to override, and
-runs the Chinese ban list and punctuation rules on a Chinese document; **M12 is
-what fails an English deliverable carrying Chinese a reader can see** — and,
-since 0.1.575, a document carrying Chinese that declares NO language, which it
-reports `blind` rather than exempting, because silence would otherwise be the
-cheapest exemption there is (`writing-rules.md` §0 is the rule; `blind` is a
-fourth verdict beside ok / FAIL / n/a, and it fails). Since
-0.1.559 it exits the way `check_design.py` does — **a prose row fails the run if
-and only if its target is zero and it does not say `(reported)`** (GAP-029, and
-`grade`'s docstring is the authority). A target of zero is a line the document
-either crosses or does not; a target that is a share is a direction, and an
-author optimizes toward any number you give them. It takes
-`--genre {sales,internal,training}`; internal analysis
-is exempt from the em-dash rule and training binds like sales. `check_design.py` reads a document's own token block, so
-most of it grades a file against the palette that file actually declares rather
-than against this repo's; a deliverable that does not use the token block at all
-— fewer than three of the ten core tokens — is reported `UNMEASURABLE` rather
-than passed. **D20 is the one that looks the other way**: every COLOUR token the
-document declares that `tokens/` also defines must carry the shipped value,
-because a document can be perfectly consistent with a palette of its own
-invention and that is a different design language. Sizes are exempt by the same
-logic that withdrew the type floor at 0.1.340. The metrics that **gate** are the
+`check_prose.py`, `check_design.py` and `inspect_layout.py` measure a
+**deliverable**, not this repo; the first two run in CI against `fixtures/`,
+and `inspect_layout.py` needs a browser, so its result is recorded through
+**`check_evidence.py`** rather than as a sentence. **`inspect_layout.py
+--deliverable` gates a document** on the findings that are decidable rather
+than aesthetic — the code's `deliverable_verdicts` is the authority — and it
+exits 1 when a check could not be measured at all. **`check_prose.py`** reads
+the document's own `lang`; **M12** fails an English deliverable carrying
+visible Chinese, and a document carrying Chinese that declares no language is
+`blind`, which fails. **A prose row fails the run if and only if its target is
+zero and it does not say `(reported)`** (GAP-029; `grade`'s docstring is the
+authority) — a target of zero is a line, a share is a direction. It takes
+`--genre {sales,internal,training}`. **`check_design.py`** grades a document
+against the token block it declares, reports `UNMEASURABLE` below three of the
+ten core tokens, and **D20** alone looks the other way: every colour token the
+document declares that `tokens/` also defines must carry the shipped value.
+The metrics that **gate** are the
 rows whose target says `(gates)`, however many that is today, and none is a
 design judgement: **D12** (handling terms and origin on every page) is a
 commercial requirement on the artifact, **D14** (no `[TO FILL]`, `[TBD]` or
@@ -220,12 +132,10 @@ decidable in the way "does this page read as intentional" is not. The list is
 `check_design.py`'s to change: a row whose target says `(gates)` gates, and the
 `gating claims` guard holds this sentence to it.
 
-Its banned-phrase list is a second copy of `references/writing-rules.md` §2, so
-the **ban-list parity** guard holds the two together: every phrase §2 bans must
-appear in the script either as a matching pattern or in `NOT_MECHANIZED` with a
-reason, and the script may not ban anything §2 does not list. Adding a phrase to
-the rules without deciding what the machine does about it fails CI, which is the
-point — the alternative is a rule that looks enforced and is not.
+Its banned-phrase list is a second copy of `references/writing-rules.md` §2,
+and the **ban-list parity** guard holds the two together: every phrase §2 bans
+is either a pattern in the script or in `NOT_MECHANIZED` with a reason, and the
+script may not ban what §2 does not list.
 
 Everything the checks cannot decide — above all whether a rule change was
 re-flowed into the entry points — stays with the reviewer.

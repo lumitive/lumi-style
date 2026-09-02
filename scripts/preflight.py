@@ -49,7 +49,8 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
-import shipping  # noqa: E402 — after the bootstrap
+import jsonio  # noqa: E402 — after the bootstrap
+import shipping  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 WORKFLOW = ROOT / ".github/workflows/ci.yml"
@@ -182,11 +183,11 @@ def main(argv):
               "wall time must not become the bar")
     if args.timing_update and not failed:
         PERF_BASELINE.parent.mkdir(parents=True, exist_ok=True)
-        PERF_BASELINE.write_text(json.dumps({
+        jsonio.dump_json(PERF_BASELINE, {
             "machine": sys.platform,
             "recorded": datetime.date.today().isoformat(),
             "steps": timings,
-        }, indent=2) + "\n", encoding="utf-8")
+        })
         print(f"recorded {len(timings)}-step timing baseline -> "
               f"{PERF_BASELINE.relative_to(ROOT)}")
     if failed:

@@ -51,6 +51,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 import check_evidence  # noqa: E402 — for SPEC_PLACEHOLDER
+import jsonio  # noqa: E402
 import preflight  # noqa: E402
 import repo_files  # noqa: E402
 import shipping  # noqa: E402 — after the bootstrap
@@ -387,8 +388,7 @@ def main():
         if kept_waivers and not doc.get("waivers"):
             doc["waivers"] = kept_waivers
             print(f"   carried {len(kept_waivers)} waiver(s) across --init")
-        path.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n",
-                        encoding="utf-8")
+        jsonio.dump_json(path, doc)
         for obligation in doc.get("obligations", []):
             done = {c.get("id") for c in doc.get("checks", [])}
             waived = {w.get("id") for w in doc.get("waivers", [])}
@@ -440,7 +440,24 @@ def main():
                  "in this release is not watched by anything. Write the test, "
                  "or record it with a reason.")
 
-    print("\n6. restated claims — the ones in the files this release touches")
+    print("\n6. surgical diff — did this release reformat a file it meant to edit?")
+    # GATING. Four times in three releases (0.1.673 twice, 0.1.674, 0.1.681) a
+    # JSON file came back re-indented and the commit carried hundreds or
+    # thousands of changed lines of which a handful were the change — one of
+    # them undoing the one before. `git diff` against `git diff -w` is the whole
+    # measurement; the thresholds name those four and none of the other
+    # twenty-six commits in the same window. Here, on the working tree, because
+    # this is where the author can still write the file back the way it was.
+    surg = subprocess.run(
+        [sys.executable, str(ROOT / "scripts/check/surgical_diff.py"), "--base", "HEAD"],
+        cwd=ROOT)
+    if surg.returncode:
+        sys.exit("\nNOT COMMITTING. A file was reformatted rather than edited, or a "
+                 "waiver is dead. Write it back with its own indent "
+                 "(scripts/lib/jsonio.py does), or record the reformat in "
+                 "evals/reformat-waivers.json with the release and the reason.")
+
+    print("\n7. restated claims — the ones in the files this release touches")
     # `--changed HEAD`: the staged release diff, not the whole tree. The full
     # sweep printed hundreds of lines and its last two were what a reader saw.
     sweep = run(["python3", "scripts/check/claim_sweep.py", "--counts", "--changed", "HEAD"])
@@ -451,7 +468,7 @@ def main():
         print("\n--dry-run: stopping before the commit.")
         return
 
-    print("\n7. commit")
+    print("\n8. commit")
     # OWNER-OWNED PATHS ARE NEVER SWEPT INTO A RELEASE. `git add -A` takes
     # everything in the tree, including files the owner is editing and has said
     # not to touch. 0.1.547 committed 413 lines of her brand-packs spec that

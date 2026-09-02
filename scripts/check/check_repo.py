@@ -3352,6 +3352,34 @@ def _operator_terms():
     return [], "no_dir"
 
 
+def check_surgical_diff():
+    """HEAD did not reformat a file it meant to edit (convention 17, mechanised).
+
+    Four times in three releases a JSON file came back re-indented and the
+    commit carried hundreds or thousands of changed lines of which a handful
+    were the change; `scripts/check/surgical_diff.py`'s docstring has the
+    numbers. `release.py` runs the same measurement on the working tree before
+    committing; this is the CI half, so a commit made around the release tool
+    is judged the same way. Only HEAD~1..HEAD (history is not retroactively
+    reddened, as `check_commit_convention` says); a root commit or a tree with
+    no .git has nothing to compare. A revision git cannot resolve is the third
+    answer and fails, because a clean line from a diff that did not run is FM-24.
+    """
+    if not (ROOT / ".git").exists():
+        return []
+    rc, _ = repo_files.run_git("rev-parse", "--verify", "--quiet", "HEAD~1",
+                               root=ROOT)
+    if rc != 0:
+        return []
+    import surgical_diff
+    if not surgical_diff.in_force_at(ROOT, "HEAD"):
+        return []
+    found, dead, problem = surgical_diff.judge(ROOT, "HEAD~1", "HEAD")
+    if problem:
+        return [f"surgical diff could not look: {problem}"]
+    return [f.sentence() for f in found] + dead
+
+
 def check_secrets():
     """No credential-shaped string ships in a tracked file.
 
@@ -3540,7 +3568,7 @@ SIBLING_MODULES = (
     "checker_report", "secret_patterns", "corpus", "gating",
     "gate_registry", "stamps", "trace_store", "shipped",
     "state_dir", "agent_runs", "versioning", "platform_registry",
-    "history", "agent_capability", "repo_files", "agent_cell",
+    "history", "agent_capability", "repo_files", "agent_cell", "jsonio",
 )
 # Joined at runtime so this constant cannot satisfy the guard for THIS
 # file: check_repo imports siblings too and owes the real block.
@@ -5975,6 +6003,7 @@ CHECKS = (
     ("entry restatement ceiling", check_entry_restatement_ceiling),
     ("ledgers", check_ledgers),
     ("commit convention", check_commit_convention),
+    ("surgical diff", check_surgical_diff),
     ("secrets", check_secrets),
     ("script paths", check_script_paths),
     ("bootstrap", check_bootstrap),
