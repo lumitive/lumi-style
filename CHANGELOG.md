@@ -1,3 +1,42 @@
+## 0.1.681 — the conventions keep their numbers; their case histories move out
+
+Not a rule change: the twenty maintenance conventions are unchanged in force
+and unchanged in numbering, and nothing was deleted. What moved is where the
+reasoning lives.
+
+`CLAUDE.md` is read into context on **every turn of every session** in this
+repository, and it had grown to 45 KB. Nineteen of those were the conventions
+section, and most of that nineteen was case history — which release shipped the
+defect, what the number was, what the review found. The rules have to be loaded:
+an agent that cannot see a rule cannot follow it. The cases do not: they are
+read when a convention is being applied, argued with, or revised, and that is a
+moment anyone can open a file for.
+
+So `MAINTENANCE.md` is now the one home for the full text with its cases, and
+`CLAUDE.md` carries the twenty rules alone. **45.0 KB to 34.0 KB**, which is
+about 2,800 tokens off every request this repository makes.
+
+**The numbering is why this was a move and not a rewrite.** `grep -rhoE 'convention [0-9]+|CLAUDE\.md rule [0-9]+' scripts/ tests/ references/ SKILL.md AGENTS.md | wc -l` says 95 at 0.1.681 —
+`convention 15` alone is twelve of them. A convention is never renumbered. A convention is never renumbered,
+and both files say so.
+
+`CONTRIBUTING.md` was already a third and shorter view of the same set, for a
+person opening a pull request. It now names `MAINTENANCE.md` as the authority
+rather than pointing at the CHANGELOG, so the three views have an order.
+
+The `version citations` guard caught the new file citing 0.1.681 before any
+CHANGELOG heading defined it — the intended behaviour, recorded here because
+this release planted no red of its own.
+
+Two things this release found by looking rather than by remembering. The
+citation count above was written as *some eighty* from memory and the command
+said 95, which is convention 20's rule applied to this entry. And
+`releases/perf-baseline.json` was three weeks stale — it still held the serial
+`pytest` timing 0.1.680 replaced, and `check_repo.py` had grown from its
+recorded 1.0s to 15.8s — so it is re-recorded here. Warn-only either way, and
+one machine's numbers, but a baseline nobody re-records is a warning nobody
+reads.
+
 ## 0.1.680 — the slowest step in CI was running on one core
 
 Not a rule change. The suite is the single largest cost in every release and

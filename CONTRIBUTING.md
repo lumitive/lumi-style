@@ -1,8 +1,10 @@
 # Contributing
 
 This repository runs on a small set of non-negotiable maintenance
-conventions. They exist because each one closed a shipped defect — the
-CHANGELOG entry that introduced each rule tells its story.
+conventions. They exist because each one closed a shipped defect. The seven
+below are the ones that touch a pull request; the full twenty, each with the
+defect that forced it, are in [`MAINTENANCE.md`](MAINTENANCE.md), which is
+where they are argued with and revised.
 
 ## Before you open a PR
 
